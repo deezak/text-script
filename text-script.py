@@ -8,8 +8,14 @@ ACCOUNT_SID = 'ACebe59a36b27abef4fb3829ddbebfafbf'
 AUTH_TOKEN = 'd3bc13d29421d4f8c000944c717f2c20'
 TWILIO_PHONE_NUMBER = '+18665357389'
 
+scopes = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive"
+]
+
 # Initialize Twilio client
-client = Client(ACCOUNT_SID, AUTH_TOKEN)
+textClient = Client(ACCOUNT_SID, AUTH_TOKEN)
+
 
 # Load Excel sheet
 contacts_df = pd.read_excel("test-contact.xlsx")
@@ -28,7 +34,7 @@ def send_personalized_texts():
 
         try:
             # Send SMS
-            message = client.messages.create(
+            message = textClient.messages.create(
                 body=message_body,
                 from_=TWILIO_PHONE_NUMBER,
                 to=formatted_number
@@ -39,3 +45,11 @@ def send_personalized_texts():
 
 # Run the function
 send_personalized_texts()
+
+creds = Credentials.from_service_account_file('creds.json', scopes=scopes)
+sheetClient = gspread.authorize(creds)
+# Update google sheets
+sheet = sheetClient.open("Test spreadsheet").sheet1
+
+# Update a specific cell
+sheet.update([["Hello, Google Sheets!"]], "A6")
