@@ -16,9 +16,15 @@ scopes = [
 # Initialize Twilio client
 textClient = Client(ACCOUNT_SID, AUTH_TOKEN)
 
-
 # Load Excel sheet
-contacts_df = pd.read_excel("test-contact.xlsx")
+creds = Credentials.from_service_account_file('creds.json', scopes=scopes)
+sheetClient = gspread.authorize(creds)
+
+# Update google sheets
+sheet = sheetClient.open("Test spreadsheet").sheet1
+expected_headers = ['Name', 'Phone Number', 'Text Count', 'JPSN Member?']
+data = sheet.get_all_records(expected_headers=expected_headers )
+contacts_df = pd.DataFrame(data)
 
 # Function to send personalized messages
 def send_personalized_texts():
@@ -30,7 +36,7 @@ def send_personalized_texts():
         formatted_number = phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)
         
         # Customize the message
-        message_body = f"Hi {name}, this is a quick reminder for our upcoming event! Let us know if you have questions."
+        message_body = f"Hi {name}, JaxPSN here! Peepee Poopoo"
 
         try:
             # Send SMS
@@ -45,12 +51,7 @@ def send_personalized_texts():
 
 # Run the function
 # UNCOMMENT BELOW TO SEND TEXTS
-# send_personalized_texts() 
-
-creds = Credentials.from_service_account_file('creds.json', scopes=scopes)
-sheetClient = gspread.authorize(creds)
-# Update google sheets
-sheet = sheetClient.open("Test spreadsheet").sheet1
+send_personalized_texts() 
 
 # Read all values from column A (you can specify any column)
 column_values = sheet.col_values(3)  # Column index starts at 1 for 'A', 3 for 'C'
@@ -75,6 +76,10 @@ sheet.update(range_name=range_to_update, values=updated_values)
 # green = JPSN member (col D)
     # POSSIBLE NEW FEATURE: move to different tab for JPSN members and remove from current sheet 
 # POSSIBLE NEW FEATURE: 3+ contact attempts && not JPSN member => archive number in a different tab and remove from current sheet
+
+# POSSIBLE NEW FEATURE: be able to send messages depending on membership status
+# ex: can send out texts for non JPSN members for general event reminders,
+#       and reminders for JPSN members for organization specific matters
 
 # Get the total number of rows with data
 rows_with_data = len(updated_values)
