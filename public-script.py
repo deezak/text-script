@@ -21,22 +21,28 @@ creds = Credentials.from_service_account_file('creds.json', scopes=scopes)
 sheetClient = gspread.authorize(creds)
 
 # Update google sheets
-sheet = sheetClient.open("Test spreadsheet").sheet1
-expected_headers = ['Name', 'Phone Number', 'Text Count', 'JPSN Member?']
+sheet = sheetClient.open("Public invite").sheet1
+expected_headers = ['What is your name?', 'Formatted Phone Number']
 data = sheet.get_all_records(expected_headers=expected_headers )
 contacts_df = pd.DataFrame(data)
 
 # Function to send personalized messages
 def send_personalized_texts():
     for index, row in contacts_df.iterrows():
-        name = row['Name']
-        print(row["Phone Number"])
-        phone_number = "+1"+str(row["Phone Number"])
+        name = row['What is your name?']
+        print(row["Formatted Phone Number"])
+        phone_number = "+1"+str(row["Formatted Phone Number"])
         parsed_number = phonenumbers.parse(phone_number, "US")  # Assuming the number is from the US
         formatted_number = phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)
         
         # Customize the message
-        message_body = f"Hi {name}, JaxPSN here! Peepee Poopoo"
+        message_body = f"Hey {name.split()[0]}! This is the Jacksonville Palestine Solidarity Network! We're inviting you to join us for a night of political education and community building on February 24th, 6:30PM at Cafe Resistance (5007 Soutel Dr.)!We will be hosting a Black & Palestinian Solidarity Panel to discuss the intricacies of joint struggle and liberation movements.  Featuring panelists from a variety of organizations, we are committed to including as many perspectives as possible to generate momentum in the fight against oppression and injustice.\n \nWhen our universal human and civil rights are under attack, we must stand up and fight back.  Come join us to figure out how we can best do that as a community.\n \nHope to see you Monday night!"
+        
+        # Skip if phone number is null or NaN
+        if pd.isna(phone_number) or phone_number == "":
+            # print(f"Failed to send to {name}: Phone number is null or empty.")
+            print(f"Failed to send: Phone number is null or empty.")
+            continue
 
         try:
             # Send SMS
