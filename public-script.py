@@ -36,7 +36,7 @@ def send_personalized_texts():
         formatted_number = phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)
         
         # Customize the message
-        message_body = f"Hey {name.split()[0]}! This is the Jacksonville Palestine Solidarity Network! We're inviting you to join us for a night of political education and community building on February 24th, 6:30PM at Cafe Resistance (5007 Soutel Dr.)!We will be hosting a Black & Palestinian Solidarity Panel to discuss the intricacies of joint struggle and liberation movements.  Featuring panelists from a variety of organizations, we are committed to including as many perspectives as possible to generate momentum in the fight against oppression and injustice.\n \nWhen our universal human and civil rights are under attack, we must stand up and fight back.  Come join us to figure out how we can best do that as a community.\n \nHope to see you Monday night!"
+        message_body = f"Hey {name.split()[0]}! This is the Jacksonville Palestine Solidarity Network, and we're inviting you to our free screening of the film \"Tell Your Tale, Little Bird\", a documentary by Arab Loutfi that highlights revolutionary Palestinian women.\n \nThe screening will be this Saturday (3/15) hosted at Falafel X Bar (4162 Herschel St.). Doors will open at 6:30PM, we'll start the film at 7PM, and there will be a food & prayer intermission from 7:30-8PM\n \n For those participating in Ramadan, we encourage you to call ahead the same day and make a note for your order to be ready at 7:30PM to break your fast on time. \n \nSee you there!"
         
         # Skip if phone number is null or NaN
         if pd.isna(phone_number) or phone_number == "":
