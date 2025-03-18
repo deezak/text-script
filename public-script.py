@@ -16,21 +16,33 @@ scopes = [
 # Initialize Twilio client
 textClient = Client(ACCOUNT_SID, AUTH_TOKEN)
 
-
 # Load Excel sheet
-contacts_df = pd.read_excel("test-contact.xlsx")
+creds = Credentials.from_service_account_file('creds.json', scopes=scopes)
+sheetClient = gspread.authorize(creds)
+
+# Update google sheets
+sheet = sheetClient.open("Public invite").sheet1
+expected_headers = ['What is your name?', 'Formatted Phone Number']
+data = sheet.get_all_records(expected_headers=expected_headers )
+contacts_df = pd.DataFrame(data)
 
 # Function to send personalized messages
 def send_personalized_texts():
     for index, row in contacts_df.iterrows():
-        name = row['Name']
-        print(row["Phone Number"])
-        phone_number = "+1"+str(row["Phone Number"])
+        name = row['What is your name?']
+        print(row["Formatted Phone Number"])
+        phone_number = "+1"+str(row["Formatted Phone Number"])
         parsed_number = phonenumbers.parse(phone_number, "US")  # Assuming the number is from the US
         formatted_number = phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)
         
         # Customize the message
-        message_body = f"Hi {name}, this is a quick reminder for our upcoming event! Let us know if you have questions."
+        message_body = f"Hey {name.split()[0]}! This is the Jacksonville Palestine Solidarity Network, and we're inviting you to our free screening of the film \"Tell Your Tale, Little Bird\", a documentary by Arab Loutfi that highlights revolutionary Palestinian women.\n \nThe screening will be this Saturday (3/15) hosted at Falafel X Bar (4162 Herschel St.). Doors will open at 6:30PM, we'll start the film at 7PM, and there will be a food & prayer intermission from 7:30-8PM\n \n For those participating in Ramadan, we encourage you to call ahead the same day and make a note for your order to be ready at 7:30PM to break your fast on time. \n \nSee you there!"
+        
+        # Skip if phone number is null or NaN
+        if pd.isna(phone_number) or phone_number == "":
+            # print(f"Failed to send to {name}: Phone number is null or empty.")
+            print(f"Failed to send: Phone number is null or empty.")
+            continue
 
         try:
             # Send SMS
@@ -45,12 +57,7 @@ def send_personalized_texts():
 
 # Run the function
 # UNCOMMENT BELOW TO SEND TEXTS
-# send_personalized_texts() 
-
-creds = Credentials.from_service_account_file('creds.json', scopes=scopes)
-sheetClient = gspread.authorize(creds)
-# Update google sheets
-sheet = sheetClient.open("Test spreadsheet").sheet1
+send_personalized_texts() 
 
 # Read all values from column A (you can specify any column)
 column_values = sheet.col_values(3)  # Column index starts at 1 for 'A', 3 for 'C'
@@ -75,6 +82,10 @@ sheet.update(range_name=range_to_update, values=updated_values)
 # green = JPSN member (col D)
     # POSSIBLE NEW FEATURE: move to different tab for JPSN members and remove from current sheet 
 # POSSIBLE NEW FEATURE: 3+ contact attempts && not JPSN member => archive number in a different tab and remove from current sheet
+
+# POSSIBLE NEW FEATURE: be able to send messages depending on membership status
+# ex: can send out texts for non JPSN members for general event reminders,
+#       and reminders for JPSN members for organization specific matters
 
 # Get the total number of rows with data
 rows_with_data = len(updated_values)
